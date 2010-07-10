@@ -6,6 +6,54 @@
 #===============================================================================
 #$Id$
 package Perl6::Pod::Slide;
+
+=head1 NAME
+
+Perl6::Pod::Slide - make slides easy
+
+=head1 SYNOPSIS
+
+Create Perl6 Pod file:
+
+ =for DESCRIPTION :title('Perl6 Pod:How it made')
+ = :author('Aliaksandr Zahatski') :pubdate('2 jul 2010')
+ =config Image :width('2in')
+
+ =begin Slide
+ Using B<:pause> attribute
+ =for item :numbered
+ Item1
+ =for item :numbered :pause
+ Item2
+ =for item :numbered
+ Item3
+ =end Slide
+ 
+
+Convert pod file to tex:
+
+  pod6slide < tech_docs.pod > tech_docs.tex
+
+To pdf:
+
+  pdflatex tech_docs.tex
+
+Example for add image:
+
+ =begin Slide :title('Test code')
+ Flexowriter
+ =for Image :width('2.5in')
+ img/pdp1_a.jpg
+ =end Slide
+
+
+=head1 DESCRIPTION
+
+Perl6::Pod::Slide - make slides easy
+
+=head1 METHODS
+
+=cut
 use Perl6::Pod::To;
 use Perl6::Pod::Parser::ListLevels;
 use base 'Perl6::Pod::To';
@@ -146,13 +194,13 @@ SL
 
 =head2 Image
 
-\begin{figure}[h]
+ \begin{figure}[h]
   \begin{center}
   \includegraphics[height=5cm,width=90mm]{leaves.jpg}
-\end{center}
+ \end{center}
   \caption{Caption of the image}
-\label{leave}
-\end{figure}
+ \label{leave}
+ \end{figure}
             
 
 =cut
@@ -265,6 +313,26 @@ sub end_document {
     $self->print_export('\end{document}');
     return $self->SUPER::end_document;
 }
+
+=head1 SEE ALSO
+
+Perl6::Pod, Perl6::Pod::Lib::Include, Perl6::Pod::Lib::Image
+
+L<http://perlcabal.org/syn/S26.html>
+
+=head1 AUTHOR
+
+Zahatski Aliaksandr, <zag@cpan.org>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2010 by Zahatski Aliaksandr
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.8 or,
+at your option, any later version of Perl 5 you may have available.
+
+=cut
 
 1;
 
