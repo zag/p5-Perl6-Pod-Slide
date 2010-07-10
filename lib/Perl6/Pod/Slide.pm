@@ -61,7 +61,7 @@ use strict;
 use warnings;
 use XML::ExtOn('create_pipe');
 use Data::Dumper;
-$Perl6::Pod:::Slide:VERSION = '0.01';
+$Perl6::Pod:::Slide::VERSION = '0.01';
 
 sub new {
     my $class = shift;
