@@ -5,6 +5,7 @@ Module::Build->new
     license => 'perl',
    prereq => {
 	'Perl6::Pod'=>'0.16',
+	'XML::ExtOn'=>'0.14'
 	     },
     script_files=>[qw!
     !],
