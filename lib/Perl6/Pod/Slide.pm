@@ -61,7 +61,7 @@ use strict;
 use warnings;
 use XML::ExtOn('create_pipe');
 use Data::Dumper;
-$Perl6::Pod::Slide::VERSION = '0.01';
+$Perl6::Pod::Slide::VERSION = '0.02';
 
 sub new {
     my $class = shift;
@@ -271,6 +271,18 @@ sub export_block_DESCRIPTION {
     return join "\n", @res;
 }
 
+sub export_block__LIST_ITEM_ {
+    my ( $self, $el, @p ) = @_;
+    my $attr = $el->attrs_by_name;
+    my $list_type = {
+        definition => 'description',
+        unordered  => 'itemize',
+        'ordered'  => 'enumerate'
+    }->{ $attr->{listtype} };
+    join "\n", '
+    \begin{' . $list_type . '}', @p, '\end{' . $list_type . '}';
+}
+
 =head2 Items
 
 
@@ -292,6 +304,11 @@ sub export_block_itemlist {
     }->{ $el->attrs_by_name->{listtype} };
     join "\n", '
     \begin{' . $list_type . '}', @_, '\end{' . $list_type . '}';
+}
+
+sub export_block__ITEM_ENTRY_ {
+    my ( $self, $el, @p ) = @_;
+    return join "\n", @p;
 }
 
 sub export_block_item {

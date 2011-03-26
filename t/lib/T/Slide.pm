@@ -33,7 +33,7 @@ sub t_SLIDE : Test {
 Test text B<wetwetwe>
 =end Slide
 TXT
-is $x, '\begin{frame}
+is $x, '\begin{frame}[fragile]
 \frametitle{Test title}
 Test text \textbf{wetwetwe}
 

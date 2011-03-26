@@ -4,8 +4,9 @@ Module::Build->new
     ( module_name => 'Perl6::Pod::Slide',
     license => 'perl',
    prereq => {
-	'Perl6::Pod'=>'0.16',
-	'XML::ExtOn'=>'0.14'
+	'Perl6::Pod'=>'0.26_12',
+	'XML::ExtOn'=>'0.14',
+	'Test::Class'=>0,
 	     },
     script_files=>[qw!
     !],
