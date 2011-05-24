@@ -40,13 +40,13 @@ Test text \textbf{wetwetwe}
 \end{frame}'
 }
 
-sub t_03_doc : Test {
+sub t_03_code_lang : Test {
     my $t = shift;
-    my $x = $t->get_out4block('item',<<TXT);
-=for item :term<Term>
-Test term
+    my $x = $t->parse_to_latex(<<'TXT');
+=for code :lang('Perl')
+  my $a;
 TXT
-    diag $x;
+    ok $x =~ /\\addCode{.*}{Perl}/g;
 }
 1;
 

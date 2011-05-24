@@ -46,6 +46,18 @@ Example for add image:
  img/pdp1_a.jpg
  =end Slide
 
+Example for programm code listing:
+
+ =begin code :lang('Perl')
+  sub print_export {
+    my $self = shift;
+    push @_, "\n";
+    return $self->SUPER::print_export(@_);
+  }
+ =end code
+
+or some other languages : C<PHP>,C<bash>,C<HTML>,C<Java>,C<Python>,
+C<SQL>,C<XSLT>,C<XML>,C<Lisp>,C<Ruby>,C<erlang>, C<TeX> ...
 
 =head1 DESCRIPTION
 
@@ -61,7 +73,9 @@ use strict;
 use warnings;
 use XML::ExtOn('create_pipe');
 use Data::Dumper;
-$Perl6::Pod::Slide::VERSION = '0.02';
+use File::Temp qw/ tempfile /;
+
+$Perl6::Pod::Slide::VERSION = '0.03';
 
 sub new {
     my $class = shift;
@@ -162,6 +176,19 @@ sub export_block_Latex {
 sub export_block_code {
     my $self  =shift;
     my $el = shift;
+    # =for code :lang('Perl')
+    # convert to 
+    #\addCode{ TMP_FILE }{Perl}
+    my $pod_attr = $el->get_attr;
+    if (my $lang = $pod_attr->{lang} ) {
+          #make temporary file      
+      my ( $fh, $filename ) = tempfile(TEMPLATE => 'slidesXXXXX',
+                                    SUFFIX => '.tmp');
+        binmode( $fh, ":utf8" );      
+        print $fh @_;
+      return "\n\\addCode{ $filename }{$lang} ";
+    }
+
     return join "\n",'\begin{verbatim}',@_,
     '\end{verbatim}'
 }
@@ -189,7 +216,6 @@ SL
     }
     push @res, @_, "\\end{frame}";
     return join "\n", @res;
-    warn Dumper( [ map { "$_" } @res ] );
 }
 
 =head2 Image
@@ -236,7 +262,6 @@ sub export_block_Image {
 \end{figure}
 ';
 
-#    warn Dumper \@_;
 
 }
 
@@ -246,6 +271,11 @@ sub export_code_B {
     "\\textbf{@_}";
 }
 
+sub export_code_I {
+    my $self = shift;
+    my $el   = shift;
+    "\\emph{@_}";
+}
 sub export_block_DESCRIPTION {
     my $self     = shift;
     my $el       = shift;
@@ -309,6 +339,17 @@ sub export_block_itemlist {
 sub export_block__ITEM_ENTRY_ {
     my ( $self, $el, @p ) = @_;
     return join "\n", @p;
+}
+
+sub export_block_para {
+    my ( $self, $el, @p ) = @_;
+    return join "\n", @p,"\n";
+}
+
+sub export_block__DEFN_TERM_ {
+    my ( $self, $el, @p ) = @_;
+    return '';
+    "[".join("",@p).']'
 }
 
 sub export_block_item {

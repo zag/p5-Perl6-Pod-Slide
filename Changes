@@ -1,5 +1,7 @@
 Revision history for Perl extension Perl6::Pod::Slide.
 TODO:
+0.03 24.05.2011
+    * use tmp files for listings
 0.02 26.03.2011
     * fix lists
 0.01  11.04.2010
