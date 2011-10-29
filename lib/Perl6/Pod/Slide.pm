@@ -75,7 +75,7 @@ use XML::ExtOn('create_pipe');
 use Data::Dumper;
 use File::Temp qw/ tempfile /;
 
-$Perl6::Pod::Slide::VERSION = '0.03';
+$Perl6::Pod::Slide::VERSION = '0.04';
 
 sub new {
     my $class = shift;
@@ -112,6 +112,20 @@ sub on_start_document {
 \DeclareGraphicsRule{*}{mps}{*}{}
 \fi
 
+\lstdefinelanguage{JavaScript}{
+keywords={typeof, new, true, false, catch, function, return, null, catch, switch, var, if, in, while, do, else, case, break},
+keywordstyle=\color{blue}\bfseries,
+ndkeywords={class, export, boolean, throw, implements, import, this},
+ndkeywordstyle=\color{darkgray}\bfseries,
+identifierstyle=\color{black},
+sensitive=false,
+comment=[l]{//},
+morecomment=[s]{/*}{*/},
+commentstyle=\color{purple}\ttfamily,
+stringstyle=\color{red}\ttfamily,
+morestring=[b]',
+morestring=[b]"
+}
 
 % Permet l'ajout de code par insertion du fichier le contenant
 % Coloration + ajout titre
