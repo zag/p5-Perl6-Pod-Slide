@@ -16,6 +16,30 @@ use Pod::Usage;
 use Encode qw(encode decode is_utf8);
 use Perl6::Pod::Slide;
 use Perl6::Pod::Test;
+
+sub get_slides_info {
+    my $tree = shift;
+    my $res = shift || return;
+    my @nodes = ref( $tree ) eq 'ARRAY' ? @$tree : ($tree);
+    my @tree = ();
+    foreach my $n (@nodes) {
+        unless (ref($n)){ #skip text
+            push @tree, $n;
+            next;
+        }
+        if ($n->name =~ /^(DESCRIPTION)$/ ) {
+            $res->{$n->name} = $n;
+        } else {
+            push @tree,$n;
+            $n->childs(
+            &get_slides_info( $n->childs , $res )
+            )
+        }
+    }
+    \@tree
+}
+
+
 my ( $help, $man, $partner_id );
 my %opt =
   ( help => \$help, man => \$man, pid => \$partner_id );    #meta=>\$meta,);
@@ -42,7 +66,18 @@ my $renderer = new Perl6::Pod::Slide:: headers=>1;
     use Perl6::Pod::Utl;
     my $tree = Perl6::Pod::Utl::parse_pod(ref($text) ? $$text : $text, default_pod=>1) || die "can't parse Pod";
 
+    my %res;
+    $tree = get_slides_info($tree, \%res);
+
  $renderer->start_write;
+ $renderer->visit($res{DESCRIPTION});
+ $renderer->w->raw(<<'TITLE');
+\begin{document}
+%--- the titlepage frame -------------------------%
+\begin{frame}[plain]
+  \titlepage
+\end{frame}
+TITLE
  $renderer->write($tree);
  $renderer->end_write;
 

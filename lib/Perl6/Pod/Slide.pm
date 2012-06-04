@@ -191,12 +191,6 @@ morestring=[b]"
     \end{center}
 }
 
-\begin{document}
-%--- the titlepage frame -------------------------%
-\begin{frame}[plain]
-  \titlepage
-\end{frame}
-
 HEAD
 }
 
