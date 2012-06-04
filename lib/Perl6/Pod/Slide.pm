@@ -4,7 +4,33 @@
 #
 #       AUTHOR:  Aliaksandr P. Zahatski, <zahatski@gmail.com>
 #===============================================================================
-#$Id$
+package Perl6::Pod::Slide::Writer;
+use Perl6::Pod::Writer;
+use base 'Perl6::Pod::Writer';
+use strict;
+use warnings;
+sub print {
+    my $self = shift;
+    my $fh = $self->o;
+#    if (my $type = $self->{escape}) {
+#        my $str = join ""=>@_;
+#        print $fh ($type eq 'xml') ? _xml_escape($str) : _html_escape($str);
+#        return $self
+#    }
+    print $fh @_;
+    $self
+}
+sub start_nesting {
+    my $self = shift;
+    my $level = shift || 1 ;
+    $self->raw('<blockquote>') for (1..$level);
+}
+sub stop_nesting {
+    my $self = shift;
+    my $level = shift || 1 ;
+    $self->raw('</blockquote>') for (1..$level);
+}
+
 package Perl6::Pod::Slide;
 
 =head1 NAME
@@ -67,25 +93,27 @@ Perl6::Pod::Slide - make slides easy
 
 =cut
 use Perl6::Pod::To;
-use Perl6::Pod::Parser::ListLevels;
 use base 'Perl6::Pod::To';
+use Perl6::Pod::Utl;
 use strict;
 use warnings;
-use XML::ExtOn('create_pipe');
 use Data::Dumper;
 use File::Temp qw/ tempfile /;
 
-$Perl6::Pod::Slide::VERSION = '0.04';
+$Perl6::Pod::Slide::VERSION = '0.05';
 
 sub new {
     my $class = shift;
-    my $self  = $class->SUPER::new(@_);
-    return create_pipe( 'Perl6::Pod::Parser::ListLevels', $self );
-}
+    my %args = @_;
 
-sub on_start_document {
+    my $writer = new  Perl6::Pod::Slide::Writer::
+             out => ( $args{out} || \*STDOUT );
+    return $class->SUPER::new(@_,writer=>$writer)
+#    return $class->SUPER::new(@_, writer)
+}
+sub start_write {
     my $self = shift;
-    $self->print_export(<<'HEAD');
+    $self->w->raw(<<'HEAD') if $self->{headers};
 % maked by p5-Perl6-Pod-Slide
 %
 \documentclass{beamer}
@@ -163,73 +191,66 @@ morestring=[b]"
     \end{center}
 }
 
+\begin{document}
+%--- the titlepage frame -------------------------%
+\begin{frame}[plain]
+  \titlepage
+\end{frame}
+
 HEAD
-    return $self->SUPER::on_start_document();
 }
 
-sub out_parser { $_[0]->{out_put} }
 
-sub print_export {
+sub block_Pause {
     my $self = shift;
-    push @_, "\n";
-    return $self->SUPER::print_export(@_);
+    $self->w->say('\pause');
 }
 
-sub export_block_Pause {
+sub block_Latex {
     my $self = shift;
     my $el   = shift;
-    return join "\n", ( '\pause', @_ );
+    $self->w->say($el->childs->[0]);
 }
 
-sub export_block_Latex {
-    my $self = shift;
-    my $el   = shift;
-    return join "\n" => @_;
-}
-
-sub export_block_code {
+sub block_code {
     my $self  =shift;
     my $el = shift;
     # =for code :lang('Perl')
     # convert to 
     #\addCode{ TMP_FILE }{Perl}
     my $pod_attr = $el->get_attr;
+    my $w = $self->writer;
     if (my $lang = $pod_attr->{lang} ) {
           #make temporary file      
       my ( $fh, $filename ) = tempfile(TEMPLATE => 'slidesXXXXX',
                                     SUFFIX => '.tmp');
         binmode( $fh, ":utf8" );      
-        print $fh @_;
-      return "\n\\addCode{ $filename }{$lang} ";
+        print $fh $el->childs->[0];
+      $w->raw("\n\\addCode{ $filename }{$lang} ");
+      return 
     }
-
-    return join "\n",'\begin{verbatim}',@_,
-    '\end{verbatim}'
+    if ( my $allow = $el->get_attr->{allow} ) {
+        $el->{content} =
+          Perl6::Pod::Utl::parse_para( $el->childs->[0], allow => $allow );
+    }
+    $w->say('\begin{verbatim}');
+    $self->visit_childs($el);
+    $w->say('\end{verbatim}');
+    
 }
 
-sub export_block_Slide {
+sub block_Slide {
     my $self = shift;
     my $el   = shift;
-
-    #check if open doc frame
-    unless ( $self->{START_DOC}++ ) {
-        $self->print_export(<<'SL');
-\begin{document}
-%--- the titlepage frame -------------------------%
-\begin{frame}[plain]
-  \titlepage
-\end{frame}
-SL
-    }
+    my $w = $self->writer;
     my $pod_attr = $el->get_attr;
-    my $outp     = $self->out_parser;
-    my @res      = ("\\begin{frame}[fragile]");
+    $w->say("\\begin{frame}[fragile]");
     if ( my $title = $pod_attr->{title} ) {
         $title = join "" => @$title if ref($title);
-        push @res, "\\frametitle{$title}";
+        $w->say("\\frametitle{$title}");
     }
-    push @res, @_, "\\end{frame}";
-    return join "\n", @res;
+    $self->visit(Perl6::Pod::Utl::parse_pod($el->childs->[0]));
+    $w->say("\\end{frame}");
 }
 
 =head2 Image
@@ -245,10 +266,9 @@ SL
 
 =cut
 
-sub export_block_Image {
+sub block_Image {
     my $self      = shift;
     my $el        = shift;
-    my $image     = shift;
     my $pod_attr  = $el->get_attr;
     my @size_attr = ();
     if ( my $height = $pod_attr->{height} ) {
@@ -266,69 +286,64 @@ sub export_block_Image {
     if ( my $title = $pod_attr->{title} ) {
         $ititle='\caption{'.$title.'}'
     }
-    chomp $image;
-    return '
+   my $image     = $el->childs->[0];
+   chomp $image;
+     $self->w->raw('
 \begin{figure}[!ht]
   \begin{center}
   \includegraphics' . $iattr . '{' . ${image} . '}
 \end{center}'.$ititle.'
 \label{leave}
 \end{figure}
-';
+');
 
 
 }
 
-sub export_code_B {
+sub code_B {
     my $self = shift;
     my $el   = shift;
-    "\\textbf{@_}";
+    $self->w->raw("\\textbf{");
+    $self->visit_childs($el);
+    $self->w->raw("}");
 }
 
-sub export_code_I {
+sub code_I {
     my $self = shift;
     my $el   = shift;
-    "\\emph{@_}";
+    $self->w->raw("\\emph{");
+    $self->visit_childs($el);
+    $self->w->raw("}");
 }
-sub export_block_DESCRIPTION {
+
+sub block_DESCRIPTION {
     my $self     = shift;
     my $el       = shift;
+    my $w  = $self->w;
     my $pod_attr = $el->get_attr;
-    my $outp     = $self->out_parser;
-    my @res;
     my $title = $pod_attr->{title};
     if ( ref($title) ) {
         $title = join "" => @$title;
     }
-    push @res, "\\title{$title}";
+    $w->say( "\\title{$title}" );
     my $author_txt =
       exists $pod_attr->{author}
       ? $pod_attr->{author}
       : "Unknown author. Use :author('My name')";
-    push @res, "\\author{$author_txt}";
+    $w->say("\\author{$author_txt}");
 
     my $pubdate =
       exists $pod_attr->{pubdate}
       ? $pod_attr->{pubdate}
       : '\today';
-    push @res, "\\date{$pubdate}";
-    return join "\n", @res;
+    $w->say("\\date{$pubdate}");
 }
 
-sub export_block__LIST_ITEM_ {
-    my ( $self, $el, @p ) = @_;
-    my $attr = $el->attrs_by_name;
-    my $list_type = {
-        definition => 'description',
-        unordered  => 'itemize',
-        'ordered'  => 'enumerate'
-    }->{ $attr->{listtype} };
-    join "\n", '
-    \begin{' . $list_type . '}', @p, '\end{' . $list_type . '}';
+sub block_para {
+    my ( $self, $el ) = @_;
+    $self->visit(Perl6::Pod::Utl::parse_para($el->childs->[0]) );
 }
-
 =head2 Items
-
 
 For make puse after item  add B<pause> attribute
     =for item :numbered :pause
@@ -337,53 +352,64 @@ For make puse after item  add B<pause> attribute
     Two
 
 =cut
-
-sub export_block_itemlist {
-    my $self      = shift;
-    my $el        = shift;
-    my $list_type = {
-        definition => 'description',
-        unordered  => 'itemize',
-        'ordered'  => 'enumerate'
-    }->{ $el->attrs_by_name->{listtype} };
-    join "\n", '
-    \begin{' . $list_type . '}', @_, '\end{' . $list_type . '}';
-}
-
-sub export_block__ITEM_ENTRY_ {
-    my ( $self, $el, @p ) = @_;
-    return join "\n", @p;
-}
-
-sub export_block_para {
-    my ( $self, $el, @p ) = @_;
-    return join "\n", @p,"\n";
-}
-
-sub export_block__DEFN_TERM_ {
-    my ( $self, $el, @p ) = @_;
-    return '';
-    "[".join("",@p).']'
-}
-
-sub export_block_item {
-    my $self     = shift;
-    my $el       = shift;
-    my $item_def = '\item';
-    if ( my $term = $el->get_attr->{term} ) {
-        $term = join( "", @$term ) if ref($term) eq 'ARRAY';
-        $item_def .= "[$term]";
-    }
-    if ( $el->get_attr->{pause} ) {
-        push @_, '\pause';
-    }
-    join "\n", $item_def, @_;
-}
-
-sub end_document {
+sub block_defn {
     my $self = shift;
-    $self->print_export('\end{document}');
-    return $self->SUPER::end_document;
+    $self->block_item(@_);
+}
+
+sub block_item {
+    my ( $self, $el, $prev, $next ) = @_;
+    my $w = $self->w;
+
+    my ( $list_name, $items_name ) = @{
+        {
+            ordered    => [ 'enumerate',  'item' ],
+            unordered  => [ 'itemize', 'item' ],
+            definition => [ 'description', 'item' ]
+        }->{ $el->item_type }
+      };
+    if (!$prev || $el->get_item_sign($prev) ne $el->get_item_sign($el) ) {
+        #nesting first (only 2> )
+        unless (exists $el->get_attr->{nested}) {
+            my $tonest = $el->item_level - 1 ;
+            $w->start_nesting(  $tonest  ) if $tonest;
+        }
+
+    $w->say('\begin{' . $list_name . '}');
+    }
+
+    $w->raw('\item');
+
+    if ( $el->item_type eq 'definition' ) {
+        $w->raw('[');
+        $self->visit( Perl6::Pod::Utl::parse_para( $el->{term} ) );
+        $w->raw(']')
+
+    }
+    $w->raw(' ');#space
+
+    #parse first para
+    $el->{content}->[0] =
+      Perl6::Pod::Utl::parse_para( $el->{content}->[0] );
+    $self->visit_childs($el);
+    if ( $el->get_attr->{pause} ) {
+        $w->say('\pause');
+    }
+
+    if (!$next || $el->get_item_sign($next) ne $el->get_item_sign($el) ) {
+        $w->say('\end{' . $list_name . '}');
+        unless (exists $el->get_attr->{nested}) {
+            my $tonest = $el->item_level - 1  ;
+            $w->stop_nesting(  $tonest  ) if $tonest;
+        }
+
+    }
+
+}
+
+sub end_write {
+    my $self = shift;
+    $self->w->say('\end{document}') if $self->{headers};
 }
 
 =head1 SEE ALSO

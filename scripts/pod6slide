@@ -33,9 +33,18 @@ else {
     $in_fd = \*STDIN;
 }
 
-my $t = new Perl6::Pod::Test::;
-my $p = $t->make_parser(new Perl6::Pod::Slide:: out_put=>\*STDOUT);
-$p->parse($in_fd);
+my $text;
+{local $/=undef; $text = <$in_fd>;
+}
+
+my $renderer = new Perl6::Pod::Slide:: headers=>1;
+#parse tree
+    use Perl6::Pod::Utl;
+    my $tree = Perl6::Pod::Utl::parse_pod(ref($text) ? $$text : $text, default_pod=>1) || die "can't parse Pod";
+
+ $renderer->start_write;
+ $renderer->write($tree);
+ $renderer->end_write;
 
 exit;
 
