@@ -233,18 +233,46 @@ sub block_code {
     
 }
 
+=head2 block_Slide
+
+    =begin Slide :title('Asd') 
+    = :backimage('img/297823712_f8e59447a5_z.jpg')
+    = :valign(t)  :valign(c) :valign(b)
+
+=cut
 sub block_Slide {
     my $self = shift;
     my $el   = shift;
     my $w = $self->writer;
     my $pod_attr = $el->get_attr;
-    $w->say("\\begin{frame}[fragile]");
+    #fill backimage
+    #http://tex.stackexchange.com/questions/7916/
+    my $if_enclosed = 0;
+    if ( my $backimage = $pod_attr->{backimage} ){
+        $if_enclosed = 1;
+        $w->say('{');
+#        $w->say('\usebackgroundtemplate{\includegraphics[width=\paperwidth]{'
+#        .$backimage.'}}');
+
+        $w->say('\usebackgroundtemplate{
+\vbox to \paperheight{\vfil\hbox to \paperwidth{\hfil\includegraphics[width=\paperwidth]{'.$backimage.'}\hfil}\vfil}}');
+    }
+    if (my $valign = $pod_attr->{valign}) {
+        $w->say("\\begin{frame}[$valign]");
+    } else {
+        $w->say("\\begin{frame}[fragile]");
+    }
     if ( my $title = $pod_attr->{title} ) {
         $title = join "" => @$title if ref($title);
         $w->say("\\frametitle{$title}");
     }
-    $self->visit(Perl6::Pod::Utl::parse_pod($el->childs->[0]));
+#    warn "====Start parse" . $el->childs->[0];
+#    use Data::Dumper;die Dumper (Perl6::Pod::Utl::parse_pod($el->childs->[0], default_pod=>1)) if $el->childs->[0] =~/asdasdasdasd/;
+    $self->visit(Perl6::Pod::Utl::parse_pod($el->childs->[0], default_pod=>1));
     $w->say("\\end{frame}");
+    if ($if_enclosed) {
+        $w->say('}');
+    }
 }
 
 =head2 Image
@@ -333,9 +361,32 @@ sub block_DESCRIPTION {
     $w->say("\\date{$pubdate}");
 }
 
+=head2 
+
+ =for para :bg<white> :color<black>
+
+
+=cut
 sub block_para {
     my ( $self, $el ) = @_;
+    my $attr = $el->get_attr;
+    my $to_close = 0;
+    if (my $bgcolor = $attr->{bg})  {
+        ++$to_close;
+        $self->w->say('\colorbox{'.$bgcolor.'} {')
+    }
+    if (my $txtcolor = $attr->{color})  {
+        ++$to_close;
+        $self->w->say('\textcolor{'.$txtcolor.'} {')
+    }
+
     $self->visit(Perl6::Pod::Utl::parse_para($el->childs->[0]) );
+
+    if ($to_close) {
+        $self->w->say('}') for (1..$to_close);
+    }
+    $self->w->say('% end para');
+    $self->w->say('');
 }
 =head2 Items
 
