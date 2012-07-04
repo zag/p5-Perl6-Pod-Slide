@@ -100,7 +100,7 @@ use warnings;
 use Data::Dumper;
 use File::Temp qw/ tempfile /;
 
-$Perl6::Pod::Slide::VERSION = '0.05';
+$Perl6::Pod::Slide::VERSION = '0.06';
 
 sub new {
     my $class = shift;
@@ -385,7 +385,6 @@ sub block_para {
     if ($to_close) {
         $self->w->say('}') for (1..$to_close);
     }
-    $self->w->say('% end para');
     $self->w->say('');
 }
 =head2 Items

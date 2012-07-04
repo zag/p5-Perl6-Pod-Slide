@@ -38,6 +38,7 @@ TXT
 is $x, '\begin{frame}[fragile]
 \frametitle{Test title}
 Test text \textbf{wetwetwe}
+
 \end{frame}
 '
 }
@@ -57,6 +58,7 @@ sub t_04_code_I : Test {
 Test I<sd> B<dsf I<s> d>
 TXT
     is $x,'Test \emph{sd} \textbf{dsf \emph{s} d}
+
 ';
 }
 
