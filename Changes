@@ -1,5 +1,6 @@
 Revision history for Perl extension Perl6::Pod::Slide.
 TODO:
+   * use To::Latex
 0.06 3 Jul 2012
     * fix tests
 0.05 5 Jun 2012

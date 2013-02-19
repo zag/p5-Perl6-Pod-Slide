@@ -92,8 +92,8 @@ Perl6::Pod::Slide - make slides easy
 =head1 METHODS
 
 =cut
-use Perl6::Pod::To;
-use base 'Perl6::Pod::To';
+use Perl6::Pod::To::Latex;
+use base 'Perl6::Pod::To::Latex';
 use Perl6::Pod::Utl;
 use strict;
 use warnings;
@@ -108,7 +108,7 @@ sub new {
 
     my $writer = new  Perl6::Pod::Slide::Writer::
              out => ( $args{out} || \*STDOUT );
-    return $class->SUPER::new(@_,writer=>$writer)
+    return $class->SUPER::new(@_,writer=>$writer, format=>'latex')
 #    return $class->SUPER::new(@_, writer)
 }
 sub start_write {
@@ -230,7 +230,6 @@ sub block_code {
     $w->say('\begin{verbatim}');
     $self->visit_childs($el);
     $w->say('\end{verbatim}');
-    
 }
 
 =head2 block_Slide
