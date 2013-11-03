@@ -9,6 +9,7 @@ Module::Build->new
 	'Test::Class'=>0,
 	     },
     script_files=>[qw!
+     scripts/pod6slide
     !],
    dist_version_from=>'lib/Perl6/Pod/Slide.pm',
     meta_merge=>{
