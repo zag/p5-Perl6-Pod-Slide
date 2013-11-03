@@ -1,17 +1,28 @@
 Revision history for Perl extension Perl6::Pod::Slide.
 TODO:
+
+
+0.08 03 Nov 2013
+  * Make scripts/pod6slide installable
+    (thanks Ivan Baidakou! )
+
 0.07 19 Feb 2012
    * use To::Latex
+
 0.06 3 Jul 2012
     * fix tests
+
 0.05 5 Jun 2012
     * new API in Perl6::Pod
 
 0.04 29.10.2011
     * add JavaScript support
+
 0.03 24.05.2011
     * use tmp files for listings
+
 0.02 26.03.2011
     * fix lists
+
 0.01  11.04.2010
 

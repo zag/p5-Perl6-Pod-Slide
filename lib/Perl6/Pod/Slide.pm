@@ -100,7 +100,7 @@ use warnings;
 use Data::Dumper;
 use File::Temp qw/ tempfile /;
 
-$Perl6::Pod::Slide::VERSION = '0.07';
+$Perl6::Pod::Slide::VERSION = '0.08';
 
 sub new {
     my $class = shift;
