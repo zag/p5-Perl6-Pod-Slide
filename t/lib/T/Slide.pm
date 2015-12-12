@@ -49,7 +49,7 @@ sub t_03_code_lang : Test {
 =for code :lang('Perl')
   my $a;
 TXT
-    ok $x =~ /\\addCode{.*}{Perl}/g;
+    ok $x =~ /\\addCode\{.*\}\{Perl\}/g;
 }
 
 sub t_04_code_I : Test {

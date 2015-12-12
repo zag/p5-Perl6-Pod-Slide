@@ -2,11 +2,12 @@
 #
 #  DESCRIPTION:  Make presentations
 #
-#       AUTHOR:  Aliaksandr P. Zahatski, <zahatski@gmail.com>
+#       AUTHOR:  Aliaksandr P. Zahatski, <zag@cpan.org>
 #===============================================================================
 package Perl6::Pod::Slide::Writer;
 use Perl6::Pod::Writer;
 use base 'Perl6::Pod::Writer';
+our $VERSION = '0.01';
 use strict;
 use warnings;
 sub print {
@@ -99,8 +100,7 @@ use strict;
 use warnings;
 use Data::Dumper;
 use File::Temp qw/ tempfile /;
-
-$Perl6::Pod::Slide::VERSION = '0.10';
+$Perl6::Pod::Slide::VERSION = '0.11';
 
 sub new {
     my $class = shift;
@@ -467,7 +467,7 @@ Zahatski Aliaksandr, <zag@cpan.org>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2010 by Zahatski Aliaksandr
+Copyright (C) 2015 by Zahatski Aliaksandr
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.8.8 or,

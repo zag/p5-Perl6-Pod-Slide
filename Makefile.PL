@@ -5,7 +5,7 @@ WriteMakefile
   'NAME' => 'Perl6::Pod::Slide',
   'VERSION_FROM' => 'lib/Perl6/Pod/Slide.pm',
   'PREREQ_PM' => {
-                   'Perl6::Pod' => '0.59',
+                   'Perl6::Pod' => '0.71',
                    'Test::Class' => 0,
                    'XML::ExtOn' => '0.14'
                  },
